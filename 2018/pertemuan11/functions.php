@@ -1,6 +1,6 @@
 <?php 
 // koneksi ke database
-$conn = mysqli_connect("localhost", "root", "root", "phpdasar");
+$conn = mysqli_connect("localhost", "root", "", "phpdasar");
 
 
 function query($query) {
@@ -26,7 +26,7 @@ function tambah($data) {
 
 	$query = "INSERT INTO mahasiswa
 				VALUES
-			  ('', '$nrp', '$nama', '$email', '$jurusan', '$gambar')
+			  (NULL, '$nama', '$nrp', '$email', '$jurusan', '$gambar')
 			";
 	mysqli_query($conn, $query);
 
@@ -41,7 +41,7 @@ function hapus($id) {
 }
 
 
-function ubah($data) {
+function ubah ($data) {
 	global $conn;
 
 	$id = $data["id"];
@@ -51,18 +51,18 @@ function ubah($data) {
 	$jurusan = htmlspecialchars($data["jurusan"]);
 	$gambar = htmlspecialchars($data["gambar"]);
 
-	$query = "UPDATE mahasiswa SET
-				nrp = '$nrp',
+	$query = "UPDATE mahasiswa SET 
 				nama = '$nama',
+				nrp = '$nrp',
 				email = '$email',
 				jurusan = '$jurusan',
-				gambar = '$gambar'
-			  WHERE id = $id
-			";
-	// var_dump($query); die;
-	mysqli_query($conn, $query);
+				gambar = '$gambar' 
+		WHERE id = $id;
+	";
 
-	return mysqli_affected_rows($conn);	
+	mysqli_query($conn, $query);
+	return mysqli_affected_rows($conn);
+
 }
 
 
