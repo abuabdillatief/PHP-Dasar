@@ -40,7 +40,7 @@ if( isset($_POST["submit"]) ) {
 	<h1>Ubah data mahasiswa</h1>
 
 	<form action="" method="post">
-		<input type="hidden" name="id" value="<?= $mhs["id"]; ?>">
+		<input type="hidden" name ="id" value="<?= $mhs['id']; ?>">
 		<ul>
 			<li>
 				<label for="nrp">NRP : </label>

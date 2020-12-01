@@ -1,10 +1,11 @@
 <?php 
 // koneksi ke database
-$conn = mysqli_connect("localhost", "root", "root", "phpdasar");
+$conn = mysqli_connect("localhost", "root", "", "phpdasar");
 
 
 function query($query) {
 	global $conn;
+	// var_dump($query);die;
 	$result = mysqli_query($conn, $query);
 	$rows = [];
 	while( $row = mysqli_fetch_assoc($result) ) {
@@ -21,69 +22,60 @@ function tambah($data) {
 	$nama = htmlspecialchars($data["nama"]);
 	$email = htmlspecialchars($data["email"]);
 	$jurusan = htmlspecialchars($data["jurusan"]);
-
-	// upload gambar
+	//upload image
 	$gambar = upload();
-	if( !$gambar ) {
+	if(!$gambar){
 		return false;
 	}
 
 	$query = "INSERT INTO mahasiswa
 				VALUES
-			  ('', '$nrp', '$nama', '$email', '$jurusan', '$gambar')
+			  (NULL, '$nama', '$nrp', '$email', '$jurusan', '$gambar')
 			";
 	mysqli_query($conn, $query);
 
 	return mysqli_affected_rows($conn);
 }
 
-
 function upload() {
-
-	$namaFile = $_FILES['gambar']['name'];
-	$ukuranFile = $_FILES['gambar']['size'];
+	$name = $_FILES['gambar']['name'];
+	$size = $_FILES['gambar']['size'];
 	$error = $_FILES['gambar']['error'];
-	$tmpName = $_FILES['gambar']['tmp_name'];
+	$tempName = $_FILES['gambar']['tmp_name']; 
+	$extension = strtolower(end(explode('.', $name)));
+	$validExtension = ['jpg', 'jpeg', 'png'];
+	$newName = uniqid() . ".$extension";
+	$file_destination = 'img/' . $newName;
 
-	// cek apakah tidak ada gambar yang diupload
-	if( $error === 4 ) {
-		echo "<script>
-				alert('pilih gambar terlebih dahulu!');
-			  </script>";
+
+	if($error === 4){
+		echo "
+			<script>
+			alert('Please choose an image to upload')
+			</script>
+		";
 		return false;
 	}
-
-	// cek apakah yang diupload adalah gambar
-	$ekstensiGambarValid = ['jpg', 'jpeg', 'png'];
-	$ekstensiGambar = explode('.', $namaFile);
-	$ekstensiGambar = strtolower(end($ekstensiGambar));
-	if( !in_array($ekstensiGambar, $ekstensiGambarValid) ) {
-		echo "<script>
-				alert('yang anda upload bukan gambar!');
-			  </script>";
+	if(!in_array($extension, $validExtension)){
+		echo "
+		<script>
+		alert('Please upload a valid image extension')
+		</script>
+		";
 		return false;
 	}
-
-	// cek jika ukurannya terlalu besar
-	if( $ukuranFile > 1000000 ) {
-		echo "<script>
-				alert('ukuran gambar terlalu besar!');
-			  </script>";
+	if($size > 2000000){
+		echo "
+		<script>
+		alert('File size exceeds configured limit')
+		</script>
+		";
 		return false;
 	}
+	move_uploaded_file($tempName, $file_destination);
 
-	// lolos pengecekan, gambar siap diupload
-	// generate nama gambar baru
-	$namaFileBaru = uniqid();
-	$namaFileBaru .= '.';
-	$namaFileBaru .= $ekstensiGambar;
-
-	move_uploaded_file($tmpName, 'img/' . $namaFileBaru);
-
-	return $namaFileBaru;
+	return $newName;
 }
-
-
 
 
 function hapus($id) {
@@ -93,7 +85,7 @@ function hapus($id) {
 }
 
 
-function ubah($data) {
+function ubah ($data) {
 	global $conn;
 
 	$id = $data["id"];
@@ -101,41 +93,38 @@ function ubah($data) {
 	$nama = htmlspecialchars($data["nama"]);
 	$email = htmlspecialchars($data["email"]);
 	$jurusan = htmlspecialchars($data["jurusan"]);
-	$gambarLama = htmlspecialchars($data["gambarLama"]);
-	
-	// cek apakah user pilih gambar baru atau tidak
-	if( $_FILES['gambar']['error'] === 4 ) {
-		$gambar = $gambarLama;
+	$oldPicture = $data['oldPic'];
+	if($_FILES['gambar']['error'] === 4){
+		$gambar = $oldPicture;
 	} else {
-		$gambar = upload();
+		$gambar = htmlspecialchars($data["gambar"]);
 	}
-	
 
-	$query = "UPDATE mahasiswa SET
-				nrp = '$nrp',
+	$query = "UPDATE mahasiswa SET 
 				nama = '$nama',
+				nrp = '$nrp',
 				email = '$email',
 				jurusan = '$jurusan',
-				gambar = '$gambar'
-			  WHERE id = $id
-			";
+				gambar = '$gambar' 
+		WHERE id = $id;
+	";
 
 	mysqli_query($conn, $query);
+	return mysqli_affected_rows($conn);
 
-	return mysqli_affected_rows($conn);	
 }
 
-
-function cari($keyword) {
-	$query = "SELECT * FROM mahasiswa
-				WHERE
-			  nama LIKE '%$keyword%' OR
-			  nrp LIKE '%$keyword%' OR
-			  email LIKE '%$keyword%' OR
-			  jurusan LIKE '%$keyword%'
-			";
+function search ($keyword) {
+	$query = "SELECT * FROM mahasiswa WHERE 
+				nama LIKE '%$keyword%' OR
+				nrp LIKE '%$keyword%' OR
+				jurusan LIKE '%$keyword%' OR
+				email LIKE '%$keyword%'";
 	return query($query);
 }
+
+
+
 
 
 
